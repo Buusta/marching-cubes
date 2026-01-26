@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://crp0f6ku04ta3"]
+
+[ext_resource type="Script" uid="uid://bgioy1t4mvinl" path="res://scripts/marching_cubes.gd" id="1_nnsk1"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_nnsk1"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_rwgxs"]
+sky_material = SubResource("ProceduralSkyMaterial_nnsk1")
+
+[sub_resource type="Environment" id="Environment_4wyf3"]
+background_mode = 2
+sky = SubResource("Sky_rwgxs")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_nnsk1")
+resolution = 32
+surface_level = -0.505
+frequency = 0.028
+noise_type = 2
+noise_seed = 70210
+debug_sphere_radius = 0.093
+debug_show_surface_level = false
+show_debug_spheres = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_4wyf3")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.52359587, -0.7855735, -0.32973, -0.8113072, 0.3416167, 0.4744248, -0.26005447, 0.5159188, -0.8162103, 0, 0.21310759, -0.09924984)
+shadow_enabled = true
+shadow_reverse_cull_face = true
