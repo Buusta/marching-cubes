@@ -17,13 +17,12 @@ glow_enabled = true
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_nnsk1")
-resolution = 32
+resolution = 64
 surface_level = -0.505
-frequency = 0.028
+frequency = -0.012
 noise_type = 2
-noise_seed = 70210
+noise_seed = 386
 debug_sphere_radius = 0.093
-debug_show_surface_level = false
 show_debug_spheres = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

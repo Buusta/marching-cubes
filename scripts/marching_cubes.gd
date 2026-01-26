@@ -46,12 +46,9 @@ extends Node
 @export var refresh: bool = false:
 	set(p_refresh):
 		refresh = false
-		var tim: int = Time.get_ticks_msec()
 		_initialize_noise()
 		_generate_points_values()
 		_generate_marching_mesh()
-		var tim2: int = Time.get_ticks_msec()
-		print('total time: ', tim2-tim)
 
 
 var noise: FastNoiseLite = FastNoiseLite.new()
@@ -66,22 +63,23 @@ func _initialize_noise() -> void:
 	noise.seed = noise_seed
 
 func _generate_points_values() -> void:
-	var tim: int = Time.get_ticks_msec()
 	points.clear()
 	values.clear()
+	var total_points: int = (resolution - 1)**3 * 8
+	points.resize(total_points)
+	values.resize(total_points)
+
+	var loop_idx: int = 0
 	for y: float in range(resolution - 1):
 		for z: float in range(resolution - 1):
 			for x: float in range(resolution - 1):
 				for point: Vector3 in CubesTables.CubeTable:
 					var offset_point: Vector3 = point + Vector3(x, y, z)
-
 					var noise_value: float = noise.get_noise_3d(offset_point.x, offset_point.y, offset_point.z)
 
-					points.append(offset_point)
-					values.append(noise_value)
-
-	var tim2: int = Time.get_ticks_msec()
-	print('points + value time: ', (tim2-tim))
+					points[loop_idx] = offset_point
+					values[loop_idx] = noise_value
+					loop_idx += 1
 
 func _process(_delta: float) -> void:
 	if  show_debug_spheres:
@@ -118,56 +116,34 @@ func _generate_vertex_array() -> PackedVector3Array:
 	var idx: int = 0
 	var vert_array: PackedVector3Array = PackedVector3Array()
 
-	var cube_verts_time: int = 0
-
-	cube_idx_tim = 0
-	cube_vert_list_tim = 0
-	cube_tri_verts_tim = 0
-	tri_table_tim = 0
-	tri_append_tim = 0
-
 	for y: float in range(resolution - 1):
 		for z: float in range(resolution - 1):
 			for x: float in range(resolution - 1):
 				var offset: Vector3 = Vector3(x, y, z)
 				var cube_values: Array[float] = values.slice(idx, idx + 8)
 
-				var tim3: int = Time.get_ticks_usec()
 				var cube_verts: Array[Vector3] = _get_cube_verts(cube_values, offset)
-				var tim4: int = Time.get_ticks_usec()
-				cube_verts_time += (tim4-tim3)
 
 				vert_array.append_array(cube_verts)
 				idx += 8
 
-	print("verts time: ", float(cube_verts_time)/1000.0)
-	print("cube idx time: ", float(cube_idx_tim)/1000.0)
-	print("cube vert list time: ", float(cube_vert_list_tim)/1000.0)
-	print("cube triangle verts time: ", float(cube_tri_verts_tim)/1000.0)
-
 	return vert_array
 
-var cube_idx_tim: int = 0
-var cube_vert_list_tim: int = 0
-var cube_tri_verts_tim: int = 0
-var tri_table_tim: int = 0
-var tri_append_tim: int = 0
-
 func _get_cube_verts(cube_values: Array[float], offset: Vector3) -> Array[Vector3]:
-	var cube_idx_start: int = Time.get_ticks_usec()
+	#var cube_idx_start: int = Time.get_ticks_usec()
 	var cube_idx: int = _get_cube_index(cube_values)
-	var cube_idx_end: int = Time.get_ticks_usec()
-	cube_idx_tim += (cube_idx_end-cube_idx_start)
+	#var cube_idx_end: int = Time.get_ticks_usec()
+	#cube_idx_tim += (cube_idx_end-cube_idx_start)
 
-	var vert_list_start: int = Time.get_ticks_usec() 
+	#var vert_list_start: int = Time.get_ticks_usec() 
 	var vert_list: Array[Vector3] = _get_vert_list(cube_values, cube_idx, offset)
-	var vert_list_end: int = Time.get_ticks_usec()
-	cube_vert_list_tim += (vert_list_end - vert_list_start)
+	#var vert_list_end: int = Time.get_ticks_usec()
+	#cube_vert_list_tim += (vert_list_end - vert_list_start)
 
-	var tri_list_start: int = Time.get_ticks_usec() 
+	#var tri_list_start: int = Time.get_ticks_usec() 
 	var triangle_verts: Array[Vector3] = _get_triangle_verts(cube_idx, vert_list)
-	var tri_list_end: int = Time.get_ticks_usec() 
-	cube_tri_verts_tim += (tri_list_end-tri_list_start)
+	#var tri_list_end: int = Time.get_ticks_usec() 
+	#cube_tri_verts_tim += (tri_list_end-tri_list_start)
 
 	return triangle_verts
 
@@ -214,51 +190,30 @@ func _get_vert_position(edge_idx: int, cube_values: Array[float], offset: Vector
 
 	return vert
 
-#func _get_triangle_verts(cube_idx: int, vert_list: Array[Vector3]) -> Array[Vector3]:
-	#var tri_table_start: int = Time.get_ticks_usec() 
-	#var tri_table: Array = CubesTables.TriTable[cube_idx]
-	#var tri_table_end: int = Time.get_ticks_usec()
-	#tri_table_tim += (tri_table_end-tri_table_start)
-	#var triangle_verts: Array[Vector3] = []
-#
-	#var tri_append_start: int = Time.get_ticks_usec() 
-	#for i: int in range(0, tri_table.size()-1, 3):
-		#var tri_indices: Array = tri_table.slice(i, i+3)
-		#var verts: Array[Vector3] = []
-		#for idx in tri_indices:
-			#verts.append(vert_list[idx])
-#
-		### flip winding
-		#triangle_verts.append_array(verts)
-		###triangle_verts.append(c)
-		###triangle_verts.append(b)
-#
-	#var tri_append_end: int = Time.get_ticks_usec() 
-	#tri_append_tim += (tri_append_end-tri_append_start)
-#
-	#return triangle_verts
-
 func _get_triangle_verts(cube_idx: int, vert_list: Array[Vector3]) -> Array[Vector3]:
-	var tri_table: Array = CubesTables.TriTable[cube_idx]
+	var start: int = CubesTables.TriStart[cube_idx]
+	var end: int = CubesTables.TriStart[cube_idx + 1]
 
-	# Count valid indices (skip -1 if present)
-	var tri_count: int = 0
-	while not tri_table[tri_count] == -1:
-		tri_count += 1
+	var count: int = end - start
 
-	var triangle_verts: Array[Vector3] = []
-	triangle_verts.resize(tri_count)
+	var out: Array[Vector3] = []
+	out.resize(count)
 
 	var t: int = 0
-	for i: int in range(0, tri_count, 3):
-		var a: Vector3 = vert_list[tri_table[i]]
-		var b: Vector3 = vert_list[tri_table[i+1]]
-		var c: Vector3 = vert_list[tri_table[i+2]]
 
-		# Flip winding directly while writing
-		triangle_verts[t]   = a
-		triangle_verts[t+1] = c
-		triangle_verts[t+2] = b
+	var i: int = start
+	while i < end:
+
+		var a: Vector3 = vert_list[CubesTables.TriTableFlat[i]]
+		var b: Vector3 = vert_list[CubesTables.TriTableFlat[i + 1]]
+		var c: Vector3 = vert_list[CubesTables.TriTableFlat[i + 2]]
+
+		# flip winding
+		out[t]   = a
+		out[t+1] = c
+		out[t+2] = b
+
 		t += 3
+		i += 3
 
-	return triangle_verts
+	return out
