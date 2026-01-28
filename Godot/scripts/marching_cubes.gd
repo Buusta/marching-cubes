@@ -4,9 +4,9 @@ extends Node
 @export_category("Generation settings")
 @export_range(1, 128, 1) var resolution: int = 16:
 	set(p_resolution):
-		if p_resolution != resolution:
-			resolution = p_resolution
-			_generate_points_values()
+		#if p_resolution != resolution:
+		resolution = p_resolution
+		_generate_points_values()
 
 @export var surface_level: float = 0.2
 
@@ -46,14 +46,17 @@ extends Node
 @export var refresh: bool = false:
 	set(p_refresh):
 		refresh = false
+		var timmy: int = Time.get_ticks_usec()
 		_initialize_noise()
 		_generate_points_values()
 		_generate_marching_mesh()
+		var timmy2: int = Time.get_ticks_usec()
+		print((timmy2-timmy)/1000.0)
 
 
 var noise: FastNoiseLite = FastNoiseLite.new()
 var points: Array[Vector3]
-var values: Array[float]
+var values: PackedFloat32Array = PackedFloat32Array()
 
 var mesh_instance: MeshInstance3D = MeshInstance3D.new()
 
@@ -65,21 +68,74 @@ func _initialize_noise() -> void:
 func _generate_points_values() -> void:
 	points.clear()
 	values.clear()
-	var total_points: int = (resolution - 1)**3 * 8
+
+	var total_points: int = (resolution) * (resolution) * (resolution)
 	points.resize(total_points)
 	values.resize(total_points)
 
 	var loop_idx: int = 0
-	for y: float in range(resolution - 1):
-		for z: float in range(resolution - 1):
-			for x: float in range(resolution - 1):
-				for point: Vector3 in CubesTables.CubeTable:
-					var offset_point: Vector3 = point + Vector3(x, y, z)
-					var noise_value: float = noise.get_noise_3d(offset_point.x, offset_point.y, offset_point.z)
+	for z: int in range(resolution):
+		for y: int in range(resolution):
+			for x: int in range(resolution):
+				var pos: Vector3 = Vector3(x, y, z)
+				points[loop_idx] = pos
+				values[loop_idx] = noise.get_noise_3d(x, y, z)
+				loop_idx += 1
 
-					points[loop_idx] = offset_point
-					values[loop_idx] = noise_value
-					loop_idx += 1
+
+	#var tim2: int = Time.get_ticks_usec()
+	#print((tim2-tim)/1000.0)
+##
+	#print(len(field))
+	#points.clear()
+	#values.clear()
+	#var total_points: int = (resolution - 1)**3 * 8
+	#points.resize(total_points)
+	#values.resize(total_points)
+#
+	#var loop_idx = 0
+	#for y in range(resolution - 1):
+		#for z in range(resolution - 1):
+			#for x in range(resolution - 1):
+				#for point in CubesTables.CubeTable:
+					#var px = x + int(point.x)
+					#var py = y + int(point.y)
+					#var pz = z + int(point.z)
+#
+					#var offset_point = Vector3(px, py, pz)
+					#var noise_value = noise_slices[pz].get_pixel(px, py).r
+#
+					#points[loop_idx] = offset_point
+					#values[loop_idx] = noise_value
+					#loop_idx += 1
+
+	
+	#var nouiuis = noise.get_image_3d(resolution, resolution, resolution)
+	#print(nouiuis)
+	#
+	#var tim: int = 0
+	#points.clear()
+	#values.clear()
+	#var total_points: int = (resolution - 1)**3 * 8
+	#points.resize(total_points)
+	#values.resize(total_points)
+##
+	#var loop_idx: int = 0
+	#for y: float in range(resolution - 1):
+		#for z: float in range(resolution - 1):
+			#for x: float in range(resolution - 1):
+				#for point: Vector3 in CubesTables.CubeTable:
+					#var offset_point: Vector3 = point + Vector3(x, y, z)
+					#var start_noise_sample: int = Time.get_ticks_usec()
+					#var noise_value: float = noise.get_noise_3d(offset_point.x, offset_point.y, offset_point.z)
+					#var end_noise_sample: int = Time.get_ticks_usec()
+					#tim += (end_noise_sample-start_noise_sample)
+#
+					#points[loop_idx] = offset_point
+					#values[loop_idx] = noise_value
+					#loop_idx += 1
+#
+	#print(tim/1000.0)
 
 func _process(_delta: float) -> void:
 	if  show_debug_spheres:
@@ -112,38 +168,88 @@ func _generate_marching_mesh() -> void:
 
 	mesh_instance.mesh = mesh
 
+
+func sample(x:int, y:int, z:int) -> float:
+	return values[x + y*resolution + z*resolution*resolution]
+	
+
 func _generate_vertex_array() -> PackedVector3Array:
-	var idx: int = 0
+	var num_cubes: int = (resolution - 1) * (resolution - 1) * (resolution - 1)
+	var max_verts: int = num_cubes * 15  # worst case 5 triangles per cube
 	var vert_array: PackedVector3Array = PackedVector3Array()
+	vert_array.resize(max_verts)
+	var vert_idx: int = 0
 
-	for y: float in range(resolution - 1):
-		for z: float in range(resolution - 1):
-			for x: float in range(resolution - 1):
-				var offset: Vector3 = Vector3(x, y, z)
-				var cube_values: Array[float] = values.slice(idx, idx + 8)
+	for y: int in range(resolution - 1):
+		for z: int in range(resolution - 1):
+			for x: int in range(resolution - 1):
+				# sample cube corners
+				var cube_values: Array[float] = [
+					sample(x+1, y,   z),
+					sample(x+1, y,   z+1),
+					sample(x,   y,   z+1),
+					sample(x,   y,   z),
+					sample(x+1, y+1, z),
+					sample(x+1, y+1, z+1),
+					sample(x,   y+1, z+1),
+					sample(x,   y+1, z),
+				]
 
-				var cube_verts: Array[Vector3] = _get_cube_verts(cube_values, offset)
+				# --- cube index timer ---
+				var cube_index: int = 0
+				for i: int in range(8):
+					if cube_values[i] > surface_level:
+						cube_index |= 1 << i
 
-				vert_array.append_array(cube_verts)
-				idx += 8
+				# --- vert list timer ---
+				var edge_mask: int = CubesTables.EdgeTable[cube_index]
+				var vert_list: Array[Vector3] = []
+				vert_list.resize(12)
+				for i: int in range(12):
+					if edge_mask & (1 << i):
+						var idx0: int = CubesTables.EdgeIndexTable[i][0]
+						var idx1: int = CubesTables.EdgeIndexTable[i][1]
 
+						var pos0: Vector3 = CubesTables.CubeTable[idx0] + Vector3(x, y, z)
+						var pos1: Vector3 = CubesTables.CubeTable[idx1] + Vector3(x, y, z)
+						var val0: float = cube_values[idx0]
+						var val1: float = cube_values[idx1]
+
+						if abs(surface_level - val0) < 0.00001:
+							vert_list[i] = pos0
+						elif abs(surface_level - val1) < 0.00001:
+							vert_list[i] = pos1
+						elif abs(val0 - val1) < 0.00001:
+							vert_list[i] = pos0
+						else:
+							var mu: float = (surface_level - val0) / (val1 - val0)
+							vert_list[i] = pos0.lerp(pos1, mu)
+
+				# --- triangle verts timer ---
+				var tri_start: int = CubesTables.TriStart[cube_index]
+				var tri_end: int = CubesTables.TriStart[cube_index + 1]
+				for i: int in range(tri_start, tri_end, 3):
+					var a: Vector3 = vert_list[CubesTables.TriTableFlat[i]]
+					var b: Vector3 = vert_list[CubesTables.TriTableFlat[i+1]]
+					var c: Vector3 = vert_list[CubesTables.TriTableFlat[i+2]]
+
+					# flip winding
+					vert_array[vert_idx] = a
+					vert_array[vert_idx+1] = c
+					vert_array[vert_idx+2] = b
+					vert_idx += 3
+
+	# trim excess
+	vert_array.resize(vert_idx)
 	return vert_array
 
+
 func _get_cube_verts(cube_values: Array[float], offset: Vector3) -> Array[Vector3]:
-	#var cube_idx_start: int = Time.get_ticks_usec()
 	var cube_idx: int = _get_cube_index(cube_values)
-	#var cube_idx_end: int = Time.get_ticks_usec()
-	#cube_idx_tim += (cube_idx_end-cube_idx_start)
 
-	#var vert_list_start: int = Time.get_ticks_usec() 
 	var vert_list: Array[Vector3] = _get_vert_list(cube_values, cube_idx, offset)
-	#var vert_list_end: int = Time.get_ticks_usec()
-	#cube_vert_list_tim += (vert_list_end - vert_list_start)
 
-	#var tri_list_start: int = Time.get_ticks_usec() 
 	var triangle_verts: Array[Vector3] = _get_triangle_verts(cube_idx, vert_list)
-	#var tri_list_end: int = Time.get_ticks_usec() 
-	#cube_tri_verts_tim += (tri_list_end-tri_list_start)
 
 	return triangle_verts
 

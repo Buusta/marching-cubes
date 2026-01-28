@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://crp0f6ku04ta3"]
+[gd_scene format=3 uid="uid://crp0f6ku04ta3"]
 
 [ext_resource type="Script" uid="uid://bgioy1t4mvinl" path="res://scripts/marching_cubes.gd" id="1_nnsk1"]
 
@@ -15,20 +15,18 @@ sky = SubResource("Sky_rwgxs")
 tonemap_mode = 2
 glow_enabled = true
 
-[node name="World" type="Node3D"]
+[node name="World" type="Node3D" unique_id=1852293297]
 script = ExtResource("1_nnsk1")
 resolution = 64
-surface_level = -0.505
-frequency = -0.012
-noise_type = 2
-noise_seed = 386
-debug_sphere_radius = 0.093
+surface_level = 0.08
+noise_type = 1
+debug_sphere_radius = 0.393
 show_debug_spheres = false
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2139016280]
 environment = SubResource("Environment_4wyf3")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1365568859]
 transform = Transform3D(-0.52359587, -0.7855735, -0.32973, -0.8113072, 0.3416167, 0.4744248, -0.26005447, 0.5159188, -0.8162103, 0, 0.21310759, -0.09924984)
 shadow_enabled = true
 shadow_reverse_cull_face = true

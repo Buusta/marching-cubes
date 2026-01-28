@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://10rx2kptv167"]
+
+[node name="RustWorld" type="Node3D" unique_id=47446905]
+
+[node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1367765433]
