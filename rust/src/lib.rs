@@ -1,4 +1,7 @@
 mod marching_cubes;
+mod tri_tables;
+
+pub use tri_tables::*;
 
 use godot::prelude::*;
 

@@ -1,5 +1,35 @@
 [gd_scene format=3 uid="uid://10rx2kptv167"]
 
-[node name="RustWorld" type="Node3D" unique_id=47446905]
+[ext_resource type="Script" uid="uid://it0xh43fwjyq" path="res://scenes/debug_draw_rust.gd" id="1_nncyh"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_nncyh"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_8q5hl"]
+sky_material = SubResource("ProceduralSkyMaterial_nncyh")
+
+[sub_resource type="Environment" id="Environment_b5is2"]
+background_mode = 2
+sky = SubResource("Sky_8q5hl")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="RustWorld" type="Node3D" unique_id=47446905 node_paths=PackedStringArray("marching_cubes")]
+script = ExtResource("1_nncyh")
+show_surface_level = false
+debug_sphere_size = 0.36
+marching_cubes = NodePath("MarchingCubes")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1441763792]
+environment = SubResource("Environment_b5is2")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=176392061]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+shadow_reverse_cull_face = true
 
 [node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1367765433]
+resolution = 64
+surface_level = 0.1
+noise_type = 5

@@ -46,9 +46,9 @@ extends Node
 @export var refresh: bool = false:
 	set(p_refresh):
 		refresh = false
-		var timmy: int = Time.get_ticks_usec()
 		_initialize_noise()
 		_generate_points_values()
+		var timmy: int = Time.get_ticks_usec()
 		_generate_marching_mesh()
 		var timmy2: int = Time.get_ticks_usec()
 		print((timmy2-timmy)/1000.0)
@@ -59,6 +59,9 @@ var points: Array[Vector3]
 var values: PackedFloat32Array = PackedFloat32Array()
 
 var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+
+func _ready() -> void:
+	print_tri_counts()
 
 func _initialize_noise() -> void:
 	noise.frequency = frequency
@@ -81,61 +84,6 @@ func _generate_points_values() -> void:
 				points[loop_idx] = pos
 				values[loop_idx] = noise.get_noise_3d(x, y, z)
 				loop_idx += 1
-
-
-	#var tim2: int = Time.get_ticks_usec()
-	#print((tim2-tim)/1000.0)
-##
-	#print(len(field))
-	#points.clear()
-	#values.clear()
-	#var total_points: int = (resolution - 1)**3 * 8
-	#points.resize(total_points)
-	#values.resize(total_points)
-#
-	#var loop_idx = 0
-	#for y in range(resolution - 1):
-		#for z in range(resolution - 1):
-			#for x in range(resolution - 1):
-				#for point in CubesTables.CubeTable:
-					#var px = x + int(point.x)
-					#var py = y + int(point.y)
-					#var pz = z + int(point.z)
-#
-					#var offset_point = Vector3(px, py, pz)
-					#var noise_value = noise_slices[pz].get_pixel(px, py).r
-#
-					#points[loop_idx] = offset_point
-					#values[loop_idx] = noise_value
-					#loop_idx += 1
-
-	
-	#var nouiuis = noise.get_image_3d(resolution, resolution, resolution)
-	#print(nouiuis)
-	#
-	#var tim: int = 0
-	#points.clear()
-	#values.clear()
-	#var total_points: int = (resolution - 1)**3 * 8
-	#points.resize(total_points)
-	#values.resize(total_points)
-##
-	#var loop_idx: int = 0
-	#for y: float in range(resolution - 1):
-		#for z: float in range(resolution - 1):
-			#for x: float in range(resolution - 1):
-				#for point: Vector3 in CubesTables.CubeTable:
-					#var offset_point: Vector3 = point + Vector3(x, y, z)
-					#var start_noise_sample: int = Time.get_ticks_usec()
-					#var noise_value: float = noise.get_noise_3d(offset_point.x, offset_point.y, offset_point.z)
-					#var end_noise_sample: int = Time.get_ticks_usec()
-					#tim += (end_noise_sample-start_noise_sample)
-#
-					#points[loop_idx] = offset_point
-					#values[loop_idx] = noise_value
-					#loop_idx += 1
-#
-	#print(tim/1000.0)
 
 func _process(_delta: float) -> void:
 	if  show_debug_spheres:
@@ -171,7 +119,6 @@ func _generate_marching_mesh() -> void:
 
 func sample(x:int, y:int, z:int) -> float:
 	return values[x + y*resolution + z*resolution*resolution]
-	
 
 func _generate_vertex_array() -> PackedVector3Array:
 	var num_cubes: int = (resolution - 1) * (resolution - 1) * (resolution - 1)
@@ -323,3 +270,26 @@ func _get_triangle_verts(cube_idx: int, vert_list: Array[Vector3]) -> Array[Vect
 		i += 3
 
 	return out
+
+func print_tri_counts():
+	var tri_start = CubesTables.TriStart
+	var counts := PackedInt32Array()
+
+	for i in tri_start.size() - 1:
+		var count = tri_start[i + 1] - tri_start[i]
+		counts.append(count)
+
+	# Optional: last entry (usually 0)
+	counts.append(0)
+
+	# Print in Rust-style array format
+	var out := "pub static TRI_COUNT: [u8; 256] = [\n\t"
+	for i in counts.size():
+		out += str(counts[i])
+		if i < counts.size() - 1:
+			out += ", "
+		if (i + 1) % 16 == 0:
+			out += "\n\t"
+	out += "\n];"
+
+	print(out)
