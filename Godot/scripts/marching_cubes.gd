@@ -46,9 +46,9 @@ extends Node
 @export var refresh: bool = false:
 	set(p_refresh):
 		refresh = false
+		var timmy: int = Time.get_ticks_usec()
 		_initialize_noise()
 		_generate_points_values()
-		var timmy: int = Time.get_ticks_usec()
 		_generate_marching_mesh()
 		var timmy2: int = Time.get_ticks_usec()
 		print((timmy2-timmy)/1000.0)
@@ -67,6 +67,9 @@ func _initialize_noise() -> void:
 	noise.frequency = frequency
 	noise.noise_type = noise_type
 	noise.seed = noise_seed
+	noise.fractal_octaves = 12
+
+	print(noise.fractal_type)
 
 func _generate_points_values() -> void:
 	points.clear()

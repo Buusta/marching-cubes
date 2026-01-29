@@ -1,10 +1,12 @@
-use godot::classes::fast_noise_lite::NoiseType;
+//use godot::classes::fast_noise_lite::FractalType;
+//use godot::classes::fast_noise_lite::NoiseType;
 use godot::classes::mesh::PrimitiveType;
-use godot::classes::{ArrayMesh, FastNoiseLite, INode3D, MeshInstance3D, Node3D, SurfaceTool};
+use godot::classes::{ArrayMesh, INode3D, MeshInstance3D, Node3D, SurfaceTool};
 use godot::obj::NewAlloc;
 use godot::prelude::*;
 
 use std::time::Instant;
+use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 use crate::{CUBE_TABLE, EDGE_IDX_TABLE, EDGE_TABLE, TRI_COUNT, TRI_START, TRI_TABLE};
 
@@ -15,11 +17,10 @@ pub struct MarchingCubes {
 
     values: Vec<f32>,
 
-    #[var]
-    marching_mesh: Gd<MeshInstance3D>,
+    noise: FastNoiseLite,
 
     #[var]
-    noise: Gd<FastNoiseLite>,
+    marching_mesh: Gd<MeshInstance3D>,
 
     #[export_group(name = "Generation Settings")]
     #[export]
@@ -35,9 +36,6 @@ pub struct MarchingCubes {
     #[export_group(name = "Noise Settings")]
     #[export]
     frequency: f32,
-
-    #[export]
-    noise_type: NoiseType,
 
     #[export]
     noise_seed: i32,
@@ -57,11 +55,10 @@ impl INode3D for MarchingCubes {
             surface_level: 0.0,
             refresh: false,
             marching_mesh: MeshInstance3D::new_alloc(),
-            noise: FastNoiseLite::new_gd(),
             frequency: 0.01,
-            noise_type: NoiseType::SIMPLEX_SMOOTH,
             noise_seed: 69,
             initialize_noise: false,
+            noise: FastNoiseLite::new(),
         }
     }
 }
@@ -73,14 +70,9 @@ impl MarchingCubes {
 
     #[func]
     pub fn set_refresh(&mut self, _v: bool) {
-        let start = Instant::now();
         self.refresh = false;
-        self.values = self.generate_noise_field(self.resolution);
-        //self.generate();
         self.generate_marching_cube_mesh();
         self.signals().refreshed().emit();
-        let elapsed = start.elapsed();
-        godot_print!("Marching Cubes took: {:?}", elapsed);
     }
 
     #[func]
@@ -89,28 +81,27 @@ impl MarchingCubes {
         self.initialize_noise();
     }
 
-    fn initialize_noise(&mut self) {
-        self.noise.set_seed(self.noise_seed);
-        self.noise.set_noise_type(self.noise_type);
-        self.noise.set_frequency(self.frequency);
 
-        godot_print!("Noise initialized")
+
+    fn initialize_noise(&mut self) {
+        self.noise.set_seed(Some(self.noise_seed));
+        self.noise.set_noise_type(Some(NoiseType::Perlin));
+        self.noise.set_frequency(Some(self.frequency));
+        self.noise.set_fractal_octaves(Some(12));
+        self.noise.set_fractal_type(Some(FractalType::FBm));
+
+
+
+        godot_print!("Noise initialized CUMMIES")
     }
 
     fn generate_noise_field(&mut self, resolution: u8) -> Vec<f32> {
-        self.initialize_noise();
         let mut field: Vec<f32> = Vec::with_capacity((resolution as usize).pow(3));
 
         for y in 0..resolution {
             for z in 0..resolution {
                 for x in 0..resolution {
-                    let pos: Vector3 = Vector3 {
-                        x: x as f32,
-                        y: y as f32,
-                        z: z as f32,
-                    };
-
-                    field.push(self.noise.get_noise_3dv(pos))
+                    field.push(self.noise.get_noise_3d(x as f32, y as f32, z as f32));
                 }
             }
         }
@@ -195,14 +186,16 @@ impl MarchingCubes {
     }
 
     fn get_idx(&self, x: usize, y: usize, z: usize) -> usize {
-        let idx = x + y* (self.resolution as usize) + z* (self.resolution as usize) * (self.resolution as usize);
+        let idx = x + z* (self.resolution as usize) + y* (self.resolution as usize) * (self.resolution as usize);
         return idx;
     }
 
     fn generate_marching_cube_mesh(&mut self) {
+        let start = Instant::now();
+        self.values = self.generate_noise_field(self.resolution);
 
-        //let mut loop_idx: usize = 0;
-
+        let elapsed = start.elapsed();
+        godot_print!("Marching Cubes took: {:?}", elapsed);
         let mut triangle_points: Vec<Vector3> = Vec::with_capacity((self.resolution as usize - 1).pow(3) * 15);
 
         for y in 0..(self.resolution - 1) as usize {
@@ -249,46 +242,12 @@ impl MarchingCubes {
         if marching_mesh.get_parent().is_none() {
             self.base_mut().add_child(&marching_mesh);
         }
+
+
+        let typ = self.noise.noise_type;
+        let oct = self.noise.octaves;
+
+        godot_print!("{:?}", typ);
+        godot_print!("{:?}", oct);
     }
-
-
-    // fn generate_marching_cube_points(&mut self, cube_values: [f32; 8], offset: Vector3) -> Vec<Vector3> {
-
-    //     let cube_idx: u8 = self.get_cube_idx(cube_values);
-
-    //     let verts_list: [Vector3; 12] = self.get_verts_list(cube_values, cube_idx, offset);
-
-    //     let triangle_verts: Vec<Vector3> = self.get_triangle_verts(verts_list, cube_idx);
-
-    //     return triangle_verts;
-    // }
-
-
-    // fn generate(&mut self) {
-    //     const VERTS: [Vector3; 3] = [
-    //         Vector3::new(1.0, 0.0, 0.0),
-    //         Vector3::new(0.0, 0.0, 1.0),
-    //         Vector3::new(0.0, 0.0, 0.0),
-    //     ];
-
-    //     let mut st: Gd<SurfaceTool> = SurfaceTool::new_gd();
-    //     st.begin(PrimitiveType::TRIANGLES);
-    //     for v in VERTS {
-    //         st.add_vertex(v);
-    //     }
-
-    //     st.generate_normals();
-
-    //     let arr_mesh: Gd<ArrayMesh> = st.commit().unwrap();
-
-    //     let mut marching_mesh: Gd<MeshInstance3D> = self.marching_mesh.clone();
-
-    //     marching_mesh.set_mesh(&arr_mesh);
-
-    //     if marching_mesh.get_parent().is_none() {
-    //         self.base_mut().add_child(&marching_mesh);
-    //     }
-
-    //     godot_print!("Mesh refreshed")
-    // }
 }

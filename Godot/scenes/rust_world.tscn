@@ -18,18 +18,18 @@ glow_enabled = true
 [node name="RustWorld" type="Node3D" unique_id=47446905 node_paths=PackedStringArray("marching_cubes")]
 script = ExtResource("1_nncyh")
 show_surface_level = false
-debug_sphere_size = 0.36
 marching_cubes = NodePath("MarchingCubes")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1441763792]
 environment = SubResource("Environment_b5is2")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=176392061]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+transform = Transform3D(-0.19963709, -0.6561871, 0.7277113, 0.68909764, 0.43396795, 0.5803588, -0.69662726, 0.6173252, 0.36554092, 0, 0, 0)
 shadow_enabled = true
 shadow_reverse_cull_face = true
+directional_shadow_mode = 1
+directional_shadow_max_distance = 512.0
 
-[node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1367765433]
-resolution = 64
-surface_level = 0.1
-noise_type = 5
+[node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1893271714]
+resolution = 128
+frequency = 0.005

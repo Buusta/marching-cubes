@@ -8,4 +8,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
+fastnoise-lite = "1.1.1"
 
+[profile.release]
+panic = "abort"
+opt-level = 3
+lto = true
+codegen-units = 1

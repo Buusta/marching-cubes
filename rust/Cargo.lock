@@ -12,6 +12,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "autocfg"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
+
+[[package]]
+name = "fastnoise-lite"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e5f3c3cc9081e5d0e18bcd50e80cd33cba47fc22f88a9da9c33ecd1c87ea5c0"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "gdextension-api"
 version = "0.3.2"
 source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=release-v0.3#9ea85a8280daa59a93779359914b1673529a8945"
@@ -125,6 +140,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a846cbc04412cf509efcd8f3694b114fc700a035fb5a37f21517f9fb019f1ebc"
 
 [[package]]
+name = "num-traits"
+version = "0.2.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -175,6 +199,7 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 name = "rust"
 version = "0.1.0"
 dependencies = [
+ "fastnoise-lite",
  "godot",
 ]
 

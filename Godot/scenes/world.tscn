@@ -18,10 +18,11 @@ glow_enabled = true
 [node name="World" type="Node3D" unique_id=1852293297]
 script = ExtResource("1_nnsk1")
 resolution = 32
-surface_level = 0.1
-noise_type = 1
+surface_level = 0.0
+frequency = 0.089
+noise_type = 3
 noise_seed = 69
-debug_sphere_radius = 0.393
+debug_sphere_radius = 0.258
 debug_show_surface_level = false
 show_debug_spheres = false
 
