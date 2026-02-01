@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Marching Cubes"
-run/main_scene="uid://crp0f6ku04ta3"
+run/main_scene="uid://10rx2kptv167"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

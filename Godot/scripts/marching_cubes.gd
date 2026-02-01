@@ -60,9 +60,6 @@ var values: PackedFloat32Array = PackedFloat32Array()
 
 var mesh_instance: MeshInstance3D = MeshInstance3D.new()
 
-func _ready() -> void:
-	print_tri_counts()
-
 func _initialize_noise() -> void:
 	noise.frequency = frequency
 	noise.noise_type = noise_type
@@ -273,26 +270,3 @@ func _get_triangle_verts(cube_idx: int, vert_list: Array[Vector3]) -> Array[Vect
 		i += 3
 
 	return out
-
-func print_tri_counts():
-	var tri_start = CubesTables.TriStart
-	var counts := PackedInt32Array()
-
-	for i in tri_start.size() - 1:
-		var count = tri_start[i + 1] - tri_start[i]
-		counts.append(count)
-
-	# Optional: last entry (usually 0)
-	counts.append(0)
-
-	# Print in Rust-style array format
-	var out := "pub static TRI_COUNT: [u8; 256] = [\n\t"
-	for i in counts.size():
-		out += str(counts[i])
-		if i < counts.size() - 1:
-			out += ", "
-		if (i + 1) % 16 == 0:
-			out += "\n\t"
-	out += "\n];"
-
-	print(out)

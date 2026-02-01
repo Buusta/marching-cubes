@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://10rx2kptv167"]
 
 [ext_resource type="Script" uid="uid://it0xh43fwjyq" path="res://scenes/debug_draw_rust.gd" id="1_nncyh"]
+[ext_resource type="Script" uid="uid://ft7ykyee6n5h" path="res://scenes/player.gd" id="2_8q5hl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_nncyh"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -15,7 +16,10 @@ sky = SubResource("Sky_8q5hl")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_nncyh"]
+
 [node name="RustWorld" type="Node3D" unique_id=47446905 node_paths=PackedStringArray("marching_cubes")]
+transform = Transform3D(1.315, 0, 0, 0, 1.315, 0, 0, 0, 1.315, 0, 0, 0)
 script = ExtResource("1_nncyh")
 show_surface_level = false
 marching_cubes = NodePath("MarchingCubes")
@@ -26,10 +30,36 @@ environment = SubResource("Environment_b5is2")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=176392061]
 transform = Transform3D(-0.19963709, -0.6561871, 0.7277113, 0.68909764, 0.43396795, 0.5803588, -0.69662726, 0.6173252, 0.36554092, 0, 0, 0)
 shadow_enabled = true
+shadow_bias = 0.0
+shadow_normal_bias = 2.307
 shadow_reverse_cull_face = true
-directional_shadow_mode = 1
 directional_shadow_max_distance = 512.0
 
 [node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1893271714]
-resolution = 128
-frequency = 0.005
+resolution = 512
+noise_strength = 35.0
+noise_seed = 94
+
+[node name="Center" type="Node3D" parent="MarchingCubes" unique_id=1951523930]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.493816, 38.870533, 30.268986)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="." unique_id=1344289435 node_paths=PackedStringArray("gravity_object")]
+transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 261.39484, 486.14075, 290.6249)
+mass = 70.0
+gravity_scale = 0.0
+script = ExtResource("2_8q5hl")
+gravity_object = NodePath("../MarchingCubes/Center")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" unique_id=992656764]
+shape = SubResource("CapsuleShape3D_nncyh")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="RigidBody3D" unique_id=713508602]
+
+[node name="Camera3D" type="Camera3D" parent="RigidBody3D/SpringArm3D" unique_id=397701170]
+transform = Transform3D(1, 0, 0, 0, 0.24017723, 0.97072905, 0, -0.97072905, 0.24017723, 0, 0.62849045, 0)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=52216776]
+transform = Transform3D(0.7604562, 0, 0, 0, 0.7604562, 0, 0, 0, 0.7604562, 291.05798, 311.48248, 236.75609)
+light_energy = 13.511
+shadow_enabled = true
+omni_range = 191.63991
