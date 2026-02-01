@@ -36,7 +36,7 @@ shadow_reverse_cull_face = true
 directional_shadow_max_distance = 512.0
 
 [node name="MarchingCubes" type="MarchingCubes" parent="." unique_id=1893271714]
-resolution = 512
+resolution = 254
 noise_strength = 35.0
 noise_seed = 94
 
@@ -57,9 +57,3 @@ shape = SubResource("CapsuleShape3D_nncyh")
 
 [node name="Camera3D" type="Camera3D" parent="RigidBody3D/SpringArm3D" unique_id=397701170]
 transform = Transform3D(1, 0, 0, 0, 0.24017723, 0.97072905, 0, -0.97072905, 0.24017723, 0, 0.62849045, 0)
-
-[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=52216776]
-transform = Transform3D(0.7604562, 0, 0, 0, 0.7604562, 0, 0, 0, 0.7604562, 291.05798, 311.48248, 236.75609)
-light_energy = 13.511
-shadow_enabled = true
-omni_range = 191.63991

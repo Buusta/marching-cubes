@@ -284,37 +284,36 @@ impl MarchingCubes {
 
         let start_mesh = Instant::now();
 
-        // let mut unique_verts: Vec<Vector3> = Vec::new();
-        // let mut vert_map: HashMap<(i32, i32, i32), u32> = HashMap::new(); // store rounded positions to avoid float hashing
-        // let mut final_indices: Vec<u32> = Vec::new();
+        let mut unique_verts: Vec<Vector3> = Vec::new();
+        let mut vert_map: HashMap<(i32, i32, i32), u32> = HashMap::new(); // store rounded positions to avoid float hashing
+        let mut final_indices: Vec<u32> = Vec::new();
+
+
+
+        for v in &triangle_points {
+            // round to some precision to avoid float hashing issues
+            let key = ((v.x * 1_000.0) as i32, (v.y * 1_000.0) as i32, (v.z * 1_000.0) as i32);
+
+            let idx = if let Some(&existing_idx) = vert_map.get(&key) {
+                existing_idx
+            } else {
+                let new_idx = unique_verts.len() as u32;
+                unique_verts.push(*v);
+                vert_map.insert(key, new_idx);
+                new_idx
+            };
+
+            final_indices.push(idx);
+        }
+
 
         let mut st: Gd<SurfaceTool> = SurfaceTool::new_gd();
         st.begin(PrimitiveType::TRIANGLES);
 
-        for v in &triangle_points {
-            st.add_vertex(*v);
-        //     // round to some precision to avoid float hashing issues
-        //     let key = ((v.x * 1_000.0) as i32, (v.y * 1_000.0) as i32, (v.z * 1_000.0) as i32);
 
-        //     let idx = if let Some(&existing_idx) = vert_map.get(&key) {
-        //         existing_idx
-        //     } else {
-        //         let new_idx = unique_verts.len() as u32;
-        //         unique_verts.push(*v);
-        //         vert_map.insert(key, new_idx);
-        //         new_idx
-        //     };
-
-        //     final_indices.push(idx);
+        for &idx in &final_indices {
+            st.add_vertex(unique_verts[idx as usize]);
         }
-
-
-
-
-
-        // for &idx in &final_indices {
-        //     st.add_vertex(unique_verts[idx as usize]);
-        // }
 
         st.generate_normals();
         let arr_mesh: Gd<ArrayMesh> = st.commit().unwrap();
